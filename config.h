@@ -6,6 +6,8 @@ static char *styledir       = "~/.surf/styles/";
 static char *certdir        = "~/.surf/certificates/";
 static char *cachedir       = "~/.surf/cache/";
 static char *cookiefile     = "~/.surf/cookies.txt";
+static char *historyfile    = "~/.surf/history.txt";
+
 
 /* Webkit default features */
 /* Highest priority value will be used.
@@ -63,6 +65,7 @@ static WebKitFindOptions findopts = WEBKIT_FIND_OPTIONS_CASE_INSENSITIVE |
 
 #define PROMPT_GO   "Go:"
 #define PROMPT_FIND "Find:"
+#define PROMPT_HISTORY "History:"
 
 /* SETPROP(readprop, setprop, prompt)*/
 #define SETPROP(r, s, p) { \
@@ -71,6 +74,18 @@ static WebKitFindOptions findopts = WEBKIT_FIND_OPTIONS_CASE_INSENSITIVE |
              "| sed -e 's/^"r"(UTF8_STRING) = \"\\(.*\\)\"/\\1/' " \
              "      -e 's/\\\\\\(.\\)/\\1/g')\" " \
              "| dmenu -p '"p"' -w $1)\" " \
+             "&& xprop -id $1 -f "s" 8u -set "s" \"$prop\"", \
+             "surf-setprop", winid, NULL \
+        } \
+}
+
+/* SETURI(readprop, setprop, prompt)*/
+#define SETURI(r, s, p) { \
+        .v = (const char *[]){ "/bin/sh", "-c", \
+             "prop=\"$(printf '%b' \"$(xprop -id $1 "r" " \
+			 "| tac ~/.surf/history.txt " \
+             "| cut -d ' ' -f 2)\" " \
+             "| dmenu -l 10 -p '"p"' -w $1)\" " \
              "&& xprop -id $1 -f "s" 8u -set "s" \"$prop\"", \
              "surf-setprop", winid, NULL \
         } \
@@ -143,6 +158,7 @@ static Key keys[] = {
 	{ MODKEY,                GDK_KEY_g,      spawn,      SETPROP("_SURF_URI", "_SURF_GO", PROMPT_GO) },
 	{ MODKEY,                GDK_KEY_f,      spawn,      SETPROP("_SURF_FIND", "_SURF_FIND", PROMPT_FIND) },
 	{ MODKEY,                GDK_KEY_slash,  spawn,      SETPROP("_SURF_FIND", "_SURF_FIND", PROMPT_FIND) },
+	{ MODKEY,                GDK_KEY_Return, spawn,      SETURI("_SURF_URI", "_SURF_GO", PROMPT_HISTORY) },
 
 	{ 0,                     GDK_KEY_Escape, stop,       { 0 } },
 	{ MODKEY,                GDK_KEY_c,      stop,       { 0 } },
@@ -156,10 +172,10 @@ static Key keys[] = {
 	/* vertical and horizontal scrolling, in viewport percentage */
 	{ MODKEY,                GDK_KEY_j,      scrollv,    { .i = +10 } },
 	{ MODKEY,                GDK_KEY_k,      scrollv,    { .i = -10 } },
-	{ MODKEY,                GDK_KEY_space,  scrollv,    { .i = +50 } },
-	{ MODKEY,                GDK_KEY_b,      scrollv,    { .i = -50 } },
-	{ MODKEY,                GDK_KEY_i,      scrollh,    { .i = +10 } },
-	{ MODKEY,                GDK_KEY_u,      scrollh,    { .i = -10 } },
+	{ MODKEY,                GDK_KEY_d,		 scrollv,    { .i = +50 } },
+	{ MODKEY,                GDK_KEY_u,      scrollv,    { .i = -50 } },
+	{ MODKEY|GDK_SHIFT_MASK, GDK_KEY_l,      scrollh,    { .i = +10 } },
+	{ MODKEY|GDK_SHIFT_MASK, GDK_KEY_h,      scrollh,    { .i = -10 } },
 
 
 	{ MODKEY|GDK_SHIFT_MASK, GDK_KEY_j,      zoom,       { .i = -1 } },
