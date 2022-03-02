@@ -242,4 +242,4 @@ static Button buttons[] = {
 	{ OnMedia,      MODKEY,         1,      clickexternplayer, { 0 },       1 },
 };
 
-#define HOMEPAGE "https://cn.bing.com"
+#define HOMEPAGE "/www/index.html"
